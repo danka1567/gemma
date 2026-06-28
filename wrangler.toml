@@ -1,9 +1,4 @@
-name = "gemma-proxy"
+name = "gemma"
 main = "worker.js"
 compatibility_date = "2024-01-01"
-
-[vars]
-
-[[routes]]
-pattern = "gemma-proxy.your-subdomain.workers.dev/*"
-zone_name = "workers.dev"
+workers_dev = true
