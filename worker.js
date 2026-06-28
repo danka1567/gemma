@@ -1,16 +1,30 @@
 export default {
   async fetch(request) {
+    if (request.method === "OPTIONS") {
+      return new Response(null, {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "*",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        }
+      });
+    }
+
     const url = new URL(request.url);
     const target = url.searchParams.get("url");
-    if (!target) return new Response("missing url", { status: 400 });
+    if (!target) return new Response("missing url param", { status: 400 });
 
-    const headers = new Headers(request.headers);
-    headers.delete("host");
+    const headers = new Headers();
+    const skip = ["host","cf-ray","cf-connecting-ip","cf-ipcountry","cf-visitor","x-forwarded-for"];
+    for (const [k, v] of request.headers.entries()) {
+      if (!skip.includes(k.toLowerCase())) headers.set(k, v);
+    }
 
     const res = await fetch(target, {
       method: request.method,
       headers,
       body: request.method === "POST" ? request.body : undefined,
+      redirect: "follow",
     });
 
     const body = await res.arrayBuffer();
@@ -20,7 +34,7 @@ export default {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "*",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Content-Type": res.headers.get("Content-Type") || "text/plain",
+        "Content-Type": res.headers.get("Content-Type") || "application/octet-stream",
       },
     });
   }
